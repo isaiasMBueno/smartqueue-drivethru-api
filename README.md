@@ -1,113 +1,161 @@
-# LabDEV1-T1
-Trabalho T1 - Lab. Desenvolvimento 1 - IFSP Catanduva: API DriveThru
+# SmartQueue Drive-Thru API
 
-<!---Esses são exemplos. Veja https://shields.io para outras pessoas ou para personalizar este conjunto de escudos. Você pode querer incluir dependências, status do projeto e informações de licença aqui--->
+A clean and educational ASP.NET Core Web API that simulates a real-world fast-food order flow across **counter**, **drive-thru**, and **delivery** channels.
 
-![GitHub IFSP](https://ctd.ifsp.edu.br/images/IFSP-CTD2.png)
-![Github IFSP](https://img.shields.io/badge/IFSP-5%C2%BA%20Semestre%20ADS-green?style=plastic)
-![Github ADS](https://img.shields.io/badge/ADS-Lab.%20Dev.%20l-green?style=plastic&logo=superuser)
-![Github C#](https://img.shields.io/badge/C%23-.NET%20Core-blue?style=plastic&logo=gitlab)
-![Github API](https://img.shields.io/badge/API-Rest-brightgreen?style=plastic&logo=stackexchange)
+This project was built as a laboratory assignment, but it goes beyond a basic CRUD by modeling queue behavior, operational constraints, and order lifecycle transitions using clear service-layer business rules.
 
-<img src="http://www.joaoalberto.com/wp-content/uploads/2020/05/09/DriveThru.jpg" alt="DriveThru">
+## Why this project is valuable
 
-> Este projeto tem por finalidade a construção de uma API(Application Programming Interface) que simule o funcionamento de um DriveThru com base em um CRUD simples do padrão REST. De forma que seja possível fazer, alterar pedidos, além de produzi-los, entrega-los e retira-los.
+Even as a demonstrative project, it explores practical backend engineering concepts:
 
-### Ajustes e melhorias
+- **RESTful API design** with semantic routes and proper HTTP verbs.
+- **Layered architecture** (Controller + Service + Model + Enums) to keep concerns separated.
+- **Dependency Injection** via scoped service registration.
+- **Domain-oriented workflow modeling**, representing the lifecycle of an order.
+- **Queue prioritization logic** for different origins (counter, drive-thru, delivery).
+- **Operational constraints simulation**, such as kitchen concurrency limits and delivery batch thresholds.
+- **Input validation and defensive error handling** with clear status code mapping.
+- **In-memory state management** for rapid prototyping and learning.
 
-O projeto ainda está em desenvolvimento e as próximas atualizações serão voltadas nas seguintes tarefas:
+---
 
-- [x] Criação dos endpoints
-- [x] Tratamento de erros
-- [x] Tratamento de Requisições
-- [x] Padronização de URLs
-- [x] Divisão de camadas
-- [x] Revisão do código e boas práticas
+## Project overview
 
-## 💻 Pré-requisitos
+The API manages orders (`Pedido`) from creation to completion, including:
 
-Antes de começar, verifique se você atendeu aos seguintes requisitos:
-* Instalar o Framework `< .NET Core 5.0 (ou superior) >`
-* Instalar um IDE para a linguagem C# `< VSCode / VisualStudio >`
-* Instalar uma ferramenta para testes na API `< Postman / Insomnia >`
-* Uma máquina com pelo menos `<8GB RAM (recomendável)>`.
-* Conhecer `<C# / .NET Core / padrão REST>`.
+1. Creating a new order with an origin.
+2. Updating queue position of waiting orders.
+3. Moving orders from waiting to preparation.
+4. Finishing prepared orders.
+5. Delivering delivery orders in batches.
+6. Completing in-person pickup.
+7. Querying all orders with optional filters.
 
-## 🚀 Iniciando o projeto
+### Order origins
 
-Para executar o projeto, siga estas etapas:
+- `balcao` (counter)
+- `drivethru`
+- `delivery`
 
-🟦🟦VSCode:
+### Order statuses
+
+- `aguardando` (waiting)
+- `fazendo` (in preparation)
+- `pronto` (ready)
+- `entregue` (delivered/completed)
+
+---
+
+## Business rules highlighted
+
+The service layer implements domain behavior that makes the simulation realistic:
+
+- **Kitchen capacity limit:** maximum of 3 orders simultaneously in preparation.
+- **Dynamic queue selection:** next order can be selected by origin-based balancing rules.
+- **Delivery batching:** delivery dispatch is only performed when exactly 3 ready delivery orders are available.
+- **Pickup by ticket (`senha`):** ready orders can be completed individually by identifier.
+- **Queue reordering:** waiting orders can be moved to the end of the queue.
+
+---
+
+## Tech stack
+
+- **.NET / ASP.NET Core Web API**
+- **C#**
+- **Swagger / OpenAPI** (enabled in Development)
+- **Postman collection** included (`EndPoints-trabalho`)
+
+---
+
+## API endpoints
+
+Base route: `api/pedidos`
+
+| Method | Route | Description |
+|---|---|---|
+| `GET` | `/api/pedidos` | List all orders (optional filters: `status`, `origem`) |
+| `POST` | `/api/pedidos/{origem}` | Create a new order |
+| `PUT` | `/api/pedidos/{senha}` | Move waiting order to the end of the queue |
+| `PATCH` | `/api/pedidos/preparar` | Move next eligible order to preparation |
+| `GET` | `/api/pedidos/finalizar` | Finish the first order currently being prepared |
+| `GET` | `/api/pedidos/entrega` | Deliver ready `delivery` orders in batch |
+| `DELETE` | `/api/pedidos/{senha}` | Complete pickup/delivery for a specific ready order |
+
+---
+
+## Getting started
+
+### Prerequisites
+
+- .NET SDK 5.0+ (recommended: latest LTS)
+- Any API client (Swagger UI, Postman, Insomnia)
+- IDE/editor (Visual Studio or VS Code)
+
+### Run locally
+
+```bash
+dotnet restore
+dotnet run
 ```
-Com a pasta do projeto aberta, abra um novo terminal e digite o comando: "dotnet run"
+
+When running in Development, Swagger UI is available automatically.
+
+---
+
+## Project structure
+
+```text
+Controllers/
+  PedidosController.cs   # HTTP contract and response mapping
+Services/
+  IPedidosService.cs     # Application service contract
+  PedidosService.cs      # Core business rules and queue orchestration
+Models/
+  Pedido.cs              # Order entity representation
+Enums/
+  eOrigemPedido.cs       # Order origin types
+  eStatusPedido.cs       # Order lifecycle statuses
+Program.cs               # App bootstrap and DI configuration
 ```
 
-🟪🟪VisualStudio:
-```
-Abra o projeto pelo VisualStudio e execute em modo Debug (F5) ou sem Debug(Ctrl + F5)
-```
+---
 
-## ⚠️⚠️☢️Observação☢️⚠️⚠️
-```
-Nos arquivos do projeto, está incluso o arquivo <EndPoints-trabalho> .
-Basta importá-lo para utilizar as rotas já configuradas no Postman e fazer os testes.
-```
+## Suggested repository name
 
-📌Origens possíveis:
-* Balcão
-* Delivery
-* DriveThru
+**Recommended:** `smartqueue-drivethru-api`
 
-📌Status possíveis:
-* Aguardando
-* Fazendo
-* Pronto
-* Entregue
+Other good options:
 
+- `orderflow-drivethru-simulator`
+- `fastlane-orders-api`
+- `restaurant-queue-workflow-api`
 
-## 📫 Contribuindo para o projeto
-Para contribuir com o projeto, siga estas etapas:
+---
 
-1. Bifurque este repositório.
-2. Crie um branch: `git checkout -b <nome_branch>`.
-3. Faça suas alterações e confirme-as: `git commit -m '<mensagem_commit>'`
-4. Envie para o branch original: `git push origin <nome_do_projeto> / <local>`
-5. Crie a solicitação de pull.
+## Educational outcomes
 
-Como alternativa, consulte a documentação do GitHub em [como criar uma solicitação pull](https://help.github.com/en/github/collaborating-with-issues-and-pull-requests/creating-a-pull-request).
+This project is especially useful for practicing:
 
-## 🤝 Colaboradores
+- API lifecycle thinking instead of isolated endpoints.
+- Translating real business rules into deterministic code.
+- Modeling state transitions with enums and controlled operations.
+- Structuring medium-sized backend code for maintainability.
 
-O projeto foi desenvolvido pelos alunos Isaías M. Bueno (CT3006395) e Pedro H. Guzzo (CT3007324), do IFSP Catanduva.
+---
 
-<table>
-  <tr>
-    <td align="center">
-      <a href="https://www.linkedin.com/in/isaías-bueno-80a0ba157">
-        <img src="https://media-exp1.licdn.com/dms/image/C4D03AQHUINi-Lf1_tg/profile-displayphoto-shrink_800_800/0/1585184845908?e=1661990400&v=beta&t=lZAnoQMzVT9u-kXC4-3iuE096m5H95cAJ19eCVsWuqc" target="_blank" width="100px;" alt="Foto do Isaías Bueno no GitHub"/><br>
-        <sub>
-          <b>Isaías Bueno</b>
-        </sub>
-      </a>
-    </td>
-    <td align="center">
-      <a href="https://www.linkedin.com/in/pedro-guzzo-426439207/">
-        <img src="https://media-exp1.licdn.com/dms/image/D4E35AQEW-Sm_wsrasQ/profile-framedphoto-shrink_800_800/0/1623860914006?e=1656954000&v=beta&t=bBeTU0-10-wuy3Sk5xjks97Ocf_d9zOismqRmufLLjI" target="_blank" width="100px;" alt="Foto do Pedro Guzzo"/><br>
-        <sub>
-          <b>Pedro Guzzo</b>
-        </sub>
-      </a>
-    </td>
-  </tr>
-</table>
+## Future enhancements
 
+Potential next steps to evolve this demo into production-ready architecture:
 
-## 😄 Seja um dos colaboradores<br>
+- Persist data with Entity Framework Core + relational database.
+- Add automated tests (unit + integration).
+- Implement structured logging and observability.
+- Version the API and improve contract documentation.
+- Introduce authentication/authorization.
+- Containerize with Docker and CI pipeline.
 
-Quer aprender mais sobre C#? Clique [AQUI](https://www.macoratti.net) e aprenda com um dos melhores professores gratuitamente.
+---
 
-## 📝 Licença
+## License
 
-Esse projeto não tem fins lucrativos ou comerciais. Sendo assim, é livre para qualquer pessoa utilizar para estudo.
-
-[⬆ Voltar ao topo](#LabDEV1-T1)<br>
+Educational use project. Feel free to study, adapt, and extend.
