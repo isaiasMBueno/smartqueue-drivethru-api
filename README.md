@@ -120,18 +120,6 @@ Program.cs               # App bootstrap and DI configuration
 
 ---
 
-## Suggested repository name
-
-**Recommended:** `smartqueue-drivethru-api`
-
-Other good options:
-
-- `orderflow-drivethru-simulator`
-- `fastlane-orders-api`
-- `restaurant-queue-workflow-api`
-
----
-
 ## Educational outcomes
 
 This project is especially useful for practicing:
